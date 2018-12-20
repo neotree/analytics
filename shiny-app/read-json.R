@@ -2,7 +2,7 @@ library(rjson)
 library(plyr)
 
 # Read in json file
-json1 <- fromJSON(file = "../Downloaded-data/201810240832-Neotree.json")
+json1 <- fromJSON(file = "test-data.json")
 
 # Parse the json 
 json1.df <- do.call("rbind", json1)
