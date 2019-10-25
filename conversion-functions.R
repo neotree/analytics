@@ -357,4 +357,7 @@ addUnmatchedDischarges <- function(merged.df, discharge.df){
   return(combined.merged.df)
 }
 
-
+randomString <- function(n = 1) {
+  a <- do.call(paste0, replicate(5, sample(LETTERS, n, TRUE), FALSE))
+  paste0(a, sprintf("%04d", sample(9999, n, TRUE)), sample(LETTERS, n, TRUE))
+}

@@ -8,8 +8,12 @@ path <- '../json/'
 old.json.files <- read.csv('json-files-',  
                            stringsAsFactors = F,
                            header = F)$V1
-previous.unmatched.admission.df <- ''
-
+old.unmatched.admission.df <- read.csv('2019-10-25-NeoTree-admission-ID-unmatched.csv',
+                                       header = T,
+                                       stringsAsFactors = F)
+old.final.database <- read.csv('2019-10-25-NeoTree-database.csv',
+                               header = T,
+                               stringsAsFactors = F)
 
 # Library loading
 library(tidyr)
@@ -48,33 +52,27 @@ merged.df <- findMatchesWithinNewAdmissionDischarge(admission.df, discharge.df)
 final.database.df <- addUnmatchedDischarges(merged.df, discharge.df)
 
 # Write this final database to csv
-write.csv(file=paste0(Sys.Date(),'-NeoTree-database.csv'), 
+database.file <- paste0(Sys.Date(),'-NeoTree-database.csv')
+# Check if file exists
+# If file exists, add a random string to avoid overwriting
+if (file.exists(database.file)){
+  database.file <-  paste0(Sys.Date(), 
+                           randomString(), 
+                           '-NeoTree-database.csv')
+}
+write.csv(file=database.file, 
           final.database.df, 
           row.names = F,
           quote=T)
 
+
 # Save the unmatched admissions as well   
-unmatched.admissions <- admission.df$Admission.UID[which(!admission.df$Admission.UID %in% 
-merged.df$Admission.UID)]
-# Unmatched names
-admission.need.match <- admission.df$Admission.UID[which(!admission.df$Admission.UID %in% admission.df.matched$Admission.UID)]
-discharge.need.match <- discharge.df$NeoTreeID[which(!discharge.df$NeoTreeID %in% merged.df$Discharge.NeoTreeID)]
-admission.need.match.df <- cbind(admission.need.match, 
-                                 sapply(admission.need.match, 
-                                        function(x) as.character(admission.df$Admission.DateAdmission[which(admission.df$Admission.UID==x)])),
-                                 sapply(admission.need.match, 
-                                        function(x) as.character(admission.df$Admission.TimeAdmission[which(admission.df$Admission.UID==x)])))
-colnames(admission.need.match.df) <- c("Admission.UID", "Admission.DateAdmission", "AdmissionTimeAdmission")
-admission.need.match.df <- admission.df[which(admission.df$Admission.UID %in% admission.need.match),]
-#add date thing
-admission.need.match.df$Admission.DateAdmission <- as.Date(as.numeric(admission.need.match.df$Admission.DateAdmission), origin="1970-01-01")
-
-
-write.csv(admission.need.match.df, 
-          file=paste0(Sys.Date(),'-NeoTree-admission-ID-unmatched.csv'),
-          row.names = F)
-
-
+unmatched.admission.df <- admission.df[which(!admission.df$Admission.UID %in% 
+final.database.df$Admission.UID),]
+write.csv(file=paste0(Sys.Date(),'-NeoTree-unmatched-admissions.csv'), 
+          unmatched.admission.df, 
+          row.names = F,
+          quote=T)
 
 # Save the files that have been processed in this run.
 # Next time the script is run, change the old.json.files 
@@ -82,7 +80,6 @@ write.csv(admission.need.match.df,
 cat(c(admission.files, discharge.files), 
     sep =  '\n',
     file = paste0('json-files-', Sys.Date(), '.txt')) 
-
 
 
 # Summary statistics by HCWID
