@@ -44,6 +44,7 @@ jsonToDataFrame <- function(json.filenames, scriptType = "Admission"){
     a <- readChar(f, file.info(f)$size)
     if(substr(a, nchar(a), nchar(a))=="}"){
       json.files[[i]] = do.call("rbind", fromJSON(file = f) )
+      print(paste0("Processed: ", i, " of ", length(json.filenames), " files."))
     }
     else{
       print(paste0("Error in file: ", f, " -- skipping!"))
