@@ -5,13 +5,13 @@
 setwd('./')
 path <- '../json/'
 # List of previously read JSON files to avoid reading in
-old.json.files <- read.csv('json-files-2019-10-25.txt',  
+old.json.files <- read.csv('MQXRG2970O-2019-10-25-json-files.txt',  
                            stringsAsFactors = F,
                            header = F)$V1
-old.unmatched.admission.df <- read.csv('2019-10-25-NeoTree-unmatched-admissions.csv',
+old.unmatched.admission.df <- read.csv('MQXRG2970O-2019-10-25-NeoTree-unmatched-admissions.csv',
                                        header = T,
                                        stringsAsFactors = F)
-old.final.database <- read.csv('2019-10-25OUUNI8943H-NeoTree-database.csv',
+old.final.database <- read.csv('MQXRG2970O-2019-10-25-NeoTree-database.csv',
                                header = T,
                                stringsAsFactors = F)
 
@@ -29,12 +29,20 @@ source('conversion-functions.R') # defined bespoke functions
 admission.files <- list.files(path = path, 
                               pattern = '*NeoTree___Zimbabwe*.json')
 admission.files <- admission.files[!admission.files %in% old.json.files]
+if (length(admission.files)==0){
+  print("There are apparently no new admission files to analyse.")
+  print("The script will run with errors, but don't worry about them.")
+}
 admission.filenames <- paste0(path, 
                               '/', 
                               admission.files)
 discharge.files <- list.files(path = path, 
                               pattern = '*NeoDischarge___Zimbabwe*.json')
 discharge.files <- discharge.files[!discharge.files %in% old.json.files]
+if (length(discharge.files)==0){
+  print("There are apparently no new discharge files to analyse.")
+  print("The script will run with errors, but don't worry about them.")
+}
 
 discharge.filenames <- paste0(path, 
                                '/',
@@ -84,7 +92,7 @@ if (is.null(complete.df)){
 }
 
 # Write this final database to csv
-write.csv(file=paste0(runstring, '-', Sys.Date(),'-NeoTree-database.csv'), 
+write.csv(file=paste0(run.string, '-', Sys.Date(),'-NeoTree-database.csv'), 
           final.database.df, 
           row.names = F,
           quote=T)
