@@ -50,6 +50,7 @@ jsonToDataFrame <- function(json.filenames, scriptType = "Admission"){
       print(paste0("Error in file: ", f, " -- skipping!"))
     }
   }
+  print("Combining files. This may take a while...")
   df <- json.files[[1]]
   if (length(json.filenames)>1){
     for (i in 2:length(json.filenames)){

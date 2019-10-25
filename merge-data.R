@@ -20,14 +20,16 @@ library(plyr)
 source('conversion-functions.R') # defined bespoke functions 
 
 # File locations
+admission.files <- list.files(path = path, 
+                              pattern = '*NeoTree___Zimbabwe*.json')
 admission.filenames <- paste0(path, 
                               '/', 
-                              list.files(path = path, 
-                                         pattern = '*NeoTree___Zimbabwe*.json'))
+                              admission.files)
+discharge.files <- list.files(path = path, 
+                              pattern = '*NeoDischarge___Zimbabwe*.json')
 discharge.filenames <- paste0(path, 
                                '/',
-                               list.files(path = path, 
-                                          pattern = '*NeoDischarge___Zimbabwe*.json'))
+                               discharge.files)
 
 # Read in files and convert from json
 admission.df <- jsonToDataFrame(admission.filenames, scriptType = "Admission")
@@ -151,7 +153,11 @@ write.csv(discharge.need.match.df,
 
 
 # Save the files that have been processed in this run.
-write.csv(c(admission.filenames, discharge.filenames), paste0('json-files-', Sys.Date(), '.txt'), 
+# Next time the script is run, change the old.json.files 
+# to this filename
+cat(c(admission.files, discharge.files), 
+    sep =  '\n',
+    file = paste0('json-files-', Sys.Date(), '.txt')) 
 
 
 
