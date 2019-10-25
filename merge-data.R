@@ -8,6 +8,8 @@ path <- '../json/'
 old.json.files <- read.csv('json-files-',  
                            stringsAsFactors = F,
                            header = F)$V1
+previous.unmatched.admission.df <- ''
+
 
 # Library loading
 library(tidyr)
@@ -84,7 +86,9 @@ discharge.possible.matches <- discharge.possible.matches[!duplicated(discharge.p
 
 # names are the discharge NeoTreeIDs, values are the admission UIDs
 # add them to the matched data frame
-have.eight.match.df <- data.frame(admissionID=sapply(discharge.possible.matches, function(x) admission.df$NeoTreeID[admission.df$Admission.UID==x]),
+have.eight.match.df <- data.frame(admissionID=sapply(as.character(discharge.possible.matches), 
+                                                     function(x) 
+                                                       as.character(na.omit(admission.df$NeoTreeID[admission.df$Admission.UID==x]))),
                                   dischargeID=names(discharge.possible.matches),
                                   matchType="approximate")
 matches.df <- rbind(matches.df, have.eight.match.df)
@@ -118,7 +122,7 @@ merged.df$Admission.DateAdmission <- as.Date(as.numeric(merged.df$Admission.Date
 merged.df$Discharge.DateDischarge <- as.Date(as.numeric(merged.df$Discharge.DateDischarge), origin="1970-01-01")
 
 # Write to csv
-write.csv(file=paste0(Sys.Date(),'NeoTree-matched-admission-discharge-pairs.csv'), 
+write.csv(file=paste0(Sys.Date(),'-NeoTree-matched-admission-discharge-pairs.csv'), 
           merged.df, 
           row.names = F,
           quote=T)
@@ -133,11 +137,11 @@ admission.need.match.df <- cbind(admission.need.match,
 colnames(admission.need.match.df) <- c("Admission.UID", "Admission.DateAdmission", "AdmissionTimeAdmission")
 admission.need.match.df <- admission.df[which(admission.df$Admission.UID %in% admission.need.match),]
 #add date thing
-admission.need.match.df$Admission.DateAdmission <- as.Date(as.numeric(merged.df$Admission.DateAdmission), origin="1970-01-01")
+admission.need.match.df$Admission.DateAdmission <- as.Date(as.numeric(admission.need.match.df$Admission.DateAdmission), origin="1970-01-01")
 
 
 write.csv(admission.need.match.df, 
-          file=paste0(Sys.Date(),'NeoTree-admission-ID-unmatched.csv'),
+          file=paste0(Sys.Date(),'-NeoTree-admission-ID-unmatched.csv'),
           row.names = F)
 discharge.need.match.df <- cbind(discharge.need.match, 
                                  sapply(discharge.need.match, 
@@ -148,7 +152,7 @@ colnames(discharge.need.match.df) <- c("Discharge.ID", "Discharge.DateDischarge"
 discharge.need.match.df <- discharge.df[which(discharge.df$NeoTreeID %in% discharge.need.match),]
 discharge.need.match.df$Discharge.DateDischarge<-as.Date(as.numeric(discharge.need.match.df$Discharge.DateDischarge), origin="1970-01-01")
 write.csv(discharge.need.match.df, 
-          file=paste0(Sys.Date(),'NeoTree-discharge-ID-unmatched.csv'),
+          file=paste0(Sys.Date(),'-NeoTree-discharge-ID-unmatched.csv'),
           row.names = F)
 
 
