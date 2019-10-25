@@ -342,4 +342,19 @@ findMatchesWithinNewAdmissionDischarge <- function(admission.df, discharge.df){
 }
 
 
+addUnmatchedDischarges <- function(merged.df, discharge.df){
+  # Those that remain unmatched
+  unmatched.discharges <- discharge.df$NeoTreeID[which(!discharge.df$NeoTreeID %in% merged.df$Discharge.NeoTreeID)]
+  unmatched.discharge.df <- discharge.df[which(discharge.df$NeoTreeID %in% 
+                                                 unmatched.discharges),]
+  unmatched.discharge.df$Discharge.NeoTreeID <- unmatched.discharge.df$NeoTreeID
+  unmatched.discharge.df$NeoTreeID <- NULL
+  unmatched.discharge.df$Discharge.DateDischarge <- as.Date(as.numeric(unmatched.discharge.df$Discharge.DateDischarge), origin="1970-01-01")
+  
+  combined.merged.df <- merge(merged.df, 
+                              unmatched.discharge.df,
+                              all = TRUE)
+  return(combined.merged.df)
+}
+
 

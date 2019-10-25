@@ -41,91 +41,21 @@ discharge.df <- jsonToDataFrame(discharge.filenames, scriptType = "Discharge")
 admission.df <- deduplicateAdmission(admission.df)
 discharge.df <- deduplicateDischarge(discharge.df)
 
-# Those discharges which have a match
-discharge.have.match <-  discharge.df$NeoTreeID[discharge.df$NeoTreeID %in% admission.df$NeoTreeID]
-have.match.df <- data.frame(admissionID=discharge.have.match,
-                            dischargeID=discharge.have.match,
-                            matchType="perfect")
-# Those discharges which don't have a match
-discharge.need.match <- discharge.df$NeoTreeID[!discharge.df$NeoTreeID %in% admission.df$NeoTreeID]
-admission.need.match <- admission.df$NeoTreeID[!admission.df$NeoTreeID %in% discharge.df$NeoTreeID]
+# Find matches 
+merged.df <- findMatchesWithinNewAdmissionDischarge(admission.df, discharge.df)
 
-# Find possible matches using mismatch function
-discharge.possible.matches <- unlist(as.vector(sapply(discharge.need.match, function(x) 
-  admission.need.match[which(admission.need.match %in% makeAllMismatches(x))])))
-# Check for duplicates
-duplicates <- discharge.possible.matches[duplicated(discharge.possible.matches)]
-discharge.duplicated <- names(discharge.possible.matches[which(discharge.possible.matches %in% duplicates)])
+# Add in unmatched discharges
+final.database.df <- addUnmatchedDischarges(merged.df, discharge.df)
 
-
-discharge.possible.matches <- discharge.possible.matches[!discharge.possible.matches %in% duplicates]
-matches.df <- data.frame(admissionID=discharge.possible.matches, stringsAsFactors = F)
-matches.df$dischargeID <- names(discharge.possible.matches)
-matches.df$matchType <- "approximate"
-matches.df <- rbind(matches.df, have.match.df)
-
-# Find those without matches still
-discharge.need.match <- discharge.df$NeoTreeID[which(!discharge.df$NeoTreeID %in% matches.df$dischargeID)]
-admission.need.match <- admission.df$NeoTreeID[which(!admission.df$NeoTreeID %in% matches.df$admissionID)]
-# Use the longer ID for these ones
-admission.UID.need.match <- sapply(admission.need.match,
-                                   function(x) admission.df$Admission.UID[which(admission.df$NeoTreeID==x)])
-# Find matches for 8 digit ones
-makeEightCharacterMismatches <- function(UID){
-  dash <- paste0(substr(UID, 1, 4), "-", substr(UID, nchar(UID)-3, nchar(UID)))
-  space <- paste0(substr(UID, 1, 4), " ", substr(UID, nchar(UID)-3, nchar(UID)))
-  continuous <- paste0(substr(UID, 1, 4), substr(UID, nchar(UID)-3, nchar(UID)))
-  return(c(UID, dash, space, continuous))
-}
-discharge.possible.matches <- unlist(as.vector(sapply(discharge.need.match, function(x) 
-  as.character(admission.UID.need.match[which(admission.UID.need.match %in% makeEightCharacterMismatches(x))]))))
-# There are some duplicates...just exclude them
-duplicate.discharge <- discharge.possible.matches[duplicated(discharge.possible.matches)]
-discharge.possible.matches <- discharge.possible.matches[!duplicated(discharge.possible.matches)]
-
-
-# names are the discharge NeoTreeIDs, values are the admission UIDs
-# add them to the matched data frame
-have.eight.match.df <- data.frame(admissionID=sapply(as.character(discharge.possible.matches), 
-                                                     function(x) 
-                                                       as.character(na.omit(admission.df$NeoTreeID[admission.df$Admission.UID==x]))),
-                                  dischargeID=names(discharge.possible.matches),
-                                  matchType="approximate")
-matches.df <- rbind(matches.df, have.eight.match.df)
-
-# Create a merged data frame of all the matched pairs
-admission.df.matched <- admission.df[which(admission.df$NeoTreeID %in% matches.df$admissionID),]
-admission.df.matched.2 <- admission.df[which(admission.df$Admission.UID %in% matches.df$admissionID),]
-admission.df.matched <- rbind(admission.df.matched, admission.df.matched.2)
-rownames(admission.df.matched) <- admission.df.matched$NeoTreeID
-admission.df.matched$Admission.NeoTreeID <- admission.df.matched$Admission.UID # use UID
-admission.df.matched$NeoTreeID <- NULL
-
-# Only take the subset that are not duplicated 
-#matches.df <- matches.df[which(matches.df$admissionID %in% c(admission.df.matched$NeoTreeID, admission.df.matched$Admission.UID)),]
-# Discharges
-discharge.df.matched <- discharge.df[which(discharge.df$NeoTreeID %in% matches.df$dischargeID),]
-rownames(discharge.df.matched) <- discharge.df.matched$NeoTreeID
-discharge.df.matched$Discharge.NeoTreeID <- discharge.df.matched$NeoTreeID
-discharge.df.matched$NeoTreeID <- NULL
-
-merged.df <- cbind(admission.df.matched[matches.df$admissionID,],
-                   discharge.df.matched[matches.df$dischargeID,])
-merged.df$matchType <- ifelse(merged.df$Admission.NeoTreeID %in% matches.df$admissionID[which(matches.df$matchType=="perfect")],
-                              "perfect", "approximate")
-other.columns <- colnames(merged.df)# order column names
-other.columns <- other.columns[which(!other.columns %in% c("Admission.NeoTreeID", "Discharge.NeoTreeID","matchType" ))]
-merged.df <- merged.df[,c("Admission.NeoTreeID", "Discharge.NeoTreeID", "matchType", other.columns)]
-merged.df$matchType <- ifelse(merged.df$Admission.NeoTreeID==merged.df$Discharge.NeoTreeID, "perfect", "approximate")
-#add date thing
-merged.df$Admission.DateAdmission <- as.Date(as.numeric(merged.df$Admission.DateAdmission), origin="1970-01-01")
-merged.df$Discharge.DateDischarge <- as.Date(as.numeric(merged.df$Discharge.DateDischarge), origin="1970-01-01")
-
-# Write to csv
-write.csv(file=paste0(Sys.Date(),'-NeoTree-matched-admission-discharge-pairs.csv'), 
-          merged.df, 
+# Write this final database to csv
+write.csv(file=paste0(Sys.Date(),'-NeoTree-database.csv'), 
+          final.database.df, 
           row.names = F,
           quote=T)
+
+# Save the unmatched admissions as well   
+unmatched.admissions <- admission.df$Admission.UID[which(!admission.df$Admission.UID %in% 
+merged.df$Admission.UID)]
 # Unmatched names
 admission.need.match <- admission.df$Admission.UID[which(!admission.df$Admission.UID %in% admission.df.matched$Admission.UID)]
 discharge.need.match <- discharge.df$NeoTreeID[which(!discharge.df$NeoTreeID %in% merged.df$Discharge.NeoTreeID)]
@@ -143,17 +73,7 @@ admission.need.match.df$Admission.DateAdmission <- as.Date(as.numeric(admission.
 write.csv(admission.need.match.df, 
           file=paste0(Sys.Date(),'-NeoTree-admission-ID-unmatched.csv'),
           row.names = F)
-discharge.need.match.df <- cbind(discharge.need.match, 
-                                 sapply(discharge.need.match, 
-                                        function(x) as.character(discharge.df$Discharge.DateDischarge[which(discharge.df$NeoTreeID==x)])),
-                                 sapply(discharge.need.match, 
-                                        function(x) as.character(discharge.df$Discharge.TimeDischarge[which(discharge.df$NeoTreeID==x)])))
-colnames(discharge.need.match.df) <- c("Discharge.ID", "Discharge.DateDischarge", "Discharge.TimeDischarge")
-discharge.need.match.df <- discharge.df[which(discharge.df$NeoTreeID %in% discharge.need.match),]
-discharge.need.match.df$Discharge.DateDischarge<-as.Date(as.numeric(discharge.need.match.df$Discharge.DateDischarge), origin="1970-01-01")
-write.csv(discharge.need.match.df, 
-          file=paste0(Sys.Date(),'-NeoTree-discharge-ID-unmatched.csv'),
-          row.names = F)
+
 
 
 # Save the files that have been processed in this run.
