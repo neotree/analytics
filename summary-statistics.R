@@ -1,3 +1,7 @@
+# Creating things used below by Felicity's script
+final.database.df <- new.merged.df[which(!is.na(new.merged.df$Admission.NeoTreeID)),]
+discharge.need.match.df <- unmatched.discharge.df
+
 # Summary statistics by HCWID
 # Table of admissions per week
 print("Weekly admissions by worker, including unmatched")
@@ -18,13 +22,10 @@ write.csv(Tab, file=paste0('DischargeMatchedByHCWID.csv'), row.names = T)
 #Need to change Month number e.g. 07 for July as above
 MonthUnmatched<-subset(discharge.need.match.df, discharge.need.match.df$Discharge.MonthDischarge=="08")
 tabU<-table(MonthUnmatched$Discharge.HCWIDDis,MonthUnmatched$Discharge.NeoTreeOutcome)
-write.csv(TabU, file=paste0('DischargeUnmatchedByHCWID.csv'), row.names = T)
+write.csv(tabU, file=paste0('DischargeUnmatchedByHCWID.csv'), row.names = T)
 #attempting to merge unmatched discharges with matched file
 
-final.database.df<-rbindlist(list(merged.df, discharge.need.match.df), fill = TRUE)
-write.csv(final.database.df, file=paste0('Complete_WIthUnmatchedDis.csv'), row.names = T)
-tab<-table(final.database.df$Discharge.NeoTreeOutcome)
-tab
+
 #creating final outcome variable
 final.database.df$Discharge.DateTimeFinalOutcome <- ifelse(!is.na(final.database.df$Discharge.DateTimeDeath), final.database.df$Discharge.DateTimeDeath, ifelse(!is.na(final.database.df$Discharge.DateTimeDischarge), final.database.df$Discharge.DateTimeDischarge, NA))
 write.csv(final.database.df, file=paste0(Sys.Date(), ' Final.csv'),

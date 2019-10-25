@@ -1,5 +1,5 @@
 # Things written by Felicity for subsequent plotting
-complete.df <- final.database.df[which(!is.na(final.database.df$Admission.NeoTreeId)),]
+complete.df <- new.merged.df[which(!is.na(new.merged.df$Admission.NeoTreeID)),]
 
 #histogram of admission
 p5<-ggplot(complete.df, aes(x=DaysAdmission, fill=Discharge.NeoTreeOutcome)) +
