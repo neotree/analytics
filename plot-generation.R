@@ -1,4 +1,5 @@
 # Things written by Felicity for subsequent plotting
+complete.df <- final.database.df[which(!is.na(final.database.df$Admission.NeoTreeId)),]
 
 #histogram of admission
 p5<-ggplot(complete.df, aes(x=DaysAdmission, fill=Discharge.NeoTreeOutcome)) +
