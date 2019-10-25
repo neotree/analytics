@@ -160,3 +160,33 @@ makeAllMismatches <- function(UID){
   mismatches <- unique(mismatches)
   return(mismatches)
 }
+
+
+deduplicateAdmission <- function(admission.data.frame){
+  # Get rid of duplicate rows (first column is session, but some are duplicated)
+  admission.data.frame <- admission.data.frame[!duplicated(admission.data.frame[,seq(2, ncol(admission.data.frame))]),]
+  # Convert ID to lower case
+  admission.data.frame$Admission.UID <- tolower(admission.data.frame$Admission.UID)
+  # First 3 and last 3 characters of admission.df$UID should match discharge.df$NeoTreeID
+  admission.data.frame$NeoTreeID <- sapply(admission.data.frame$Admission.UID, function(x) paste0(substr(x, start=1, stop=3),
+                                                                                  substr(x, start=(nchar(x)-2), stop=(nchar(x)))))
+  
+  # Remove duplicates if they exist
+  if (length(which(duplicated(admission.data.frame$NeoTreeID)))>0){
+    admission.data.frame <- admission.data.frame[-which(duplicated(admission.data.frame$NeoTreeID)),]
+  }
+  return(admission.data.frame)
+}
+
+deduplicateDischarge <- function(discharge.data.frame){
+  discharge.data.frame <- discharge.data.frame[!duplicated(discharge.data.frame[,seq(2, ncol(discharge.data.frame))]),]
+  discharge.data.frame$NeoTreeID <- tolower(discharge.data.frame$Discharge.NeoTreeID)
+  
+  if (length(which(duplicated(discharge.data.frame$NeoTreeID)))>0){
+    discharge.data.frame <- discharge.data.frame[-which(duplicated(discharge.data.frame$NeoTreeID)),]
+    
+  }
+
+  discharge.data.frame$Discharge.NeoTreeID <- NULL
+  return(discharge.data.frame)
+}

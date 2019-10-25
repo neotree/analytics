@@ -15,37 +15,18 @@ library(rjson)
 library(plyr)
 source('conversion-functions.R') # defined bespoke functions 
 
-# Read in all files
+# File locations
 admission.filenames <- paste0(path, '/', list.files(path = path, pattern ="*NeoTree___Zimbabwe*.json"))
 discharge.filenames <-  paste0(path, '/',list.files(path = path, pattern ="*NeoDischarge___Zimbabwe*.json"))
 lab.filenames <-  paste0(path, '/', list.files(path = path, pattern = "*NeoLab*"))
 
+# Read in files and convert from json
 admission.df <- jsonToDataFrame(admission.filenames, scriptType = "Admission")
 discharge.df <- jsonToDataFrame(discharge.filenames, scriptType = "Discharge")
 
-# Get rid of duplicate rows (first column is session, but some are duplicated)
-admission.df <- admission.df[!duplicated(admission.df[,seq(2, ncol(admission.df))]),]
-discharge.df <- discharge.df[!duplicated(discharge.df[,seq(2, ncol(discharge.df))]),]
-# Convert ID to lower case
-admission.df$Admission.UID <- tolower(admission.df$Admission.UID)
-discharge.df$NeoTreeID <- tolower(discharge.df$Discharge.NeoTreeID)
-
-# First 3 and last 3 characters of admission.df$UID should match discharge.df$NeoTreeID
-admission.df$NeoTreeID <- sapply(admission.df$Admission.UID, function(x) paste0(substr(x, start=1, stop=3),
-                                                                                substr(x, start=(nchar(x)-2), stop=(nchar(x)))))
-
-# Remove duplicates if they exist
-if (length(which(duplicated(admission.df$NeoTreeID)))>0){
-  admission.df <- admission.df[-which(duplicated(admission.df$NeoTreeID)),]
-}
-if (length(which(duplicated(discharge.df$NeoTreeID)))>0){
-  discharge.df <- discharge.df[-which(duplicated(discharge.df$NeoTreeID)),]
-  
-}
-table(discharge.df$NeoTreeID %in% admission.df$NeoTreeID)
-
-discharge.df$Discharge.NeoTreeID <- NULL
-table(discharge.df$NeoTreeID %in% admission.df$NeoTreeID)
+# Deduplicate
+admission.df <- deduplicateAdmission(admission.df)
+discharge.df <- deduplicateDischarge(discharge.df)
 
 # Check the 'other' options to make consistent
 
