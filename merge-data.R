@@ -1,5 +1,3 @@
-library(rjson)
-library(plyr)
 ######################
 ###### IMPORTANT ##### 
 # Set this depending on which computer you are 
@@ -13,6 +11,9 @@ library(hms)
 library(data.table)
 library(Stack)
 library(ggplot2)
+library(rjson)
+library(plyr)
+source('conversion-functions.R') # defined bespoke functions 
 
 # Read in all files
 admission.filenames <- paste0(path, '/', list.files(path = path, pattern ="*NeoTree___Zimbabwe*.json"))
@@ -21,7 +22,6 @@ lab.filenames <-  paste0(path, '/', list.files(path = path, pattern = "*NeoLab*"
 
 admission.df <- jsonToDataFrame(admission.filenames, scriptType = "Admission")
 discharge.df <- jsonToDataFrame(discharge.filenames, scriptType = "Discharge")
-# Keep 8 digit ID if after 30.1.19
 
 # Get rid of duplicate rows (first column is session, but some are duplicated)
 admission.df <- admission.df[!duplicated(admission.df[,seq(2, ncol(admission.df))]),]
@@ -33,10 +33,6 @@ discharge.df$NeoTreeID <- tolower(discharge.df$Discharge.NeoTreeID)
 # First 3 and last 3 characters of admission.df$UID should match discharge.df$NeoTreeID
 admission.df$NeoTreeID <- sapply(admission.df$Admission.UID, function(x) paste0(substr(x, start=1, stop=3),
                                                                                 substr(x, start=(nchar(x)-2), stop=(nchar(x)))))
-#admission.df$NeoTreeID <- sapply(seq(1, nrow(admission.df), 1), 
-#       function(x) ifelse(admission.df$Admission.DateAdmission[x]>"2018-01-29",
-#                          admission.df$Admission.UID[x], admission.df$NeoTreeID[x]))
-#admission.df$NeoTreeID <- tolower(admission.df$NeoTreeID)
 
 # Remove duplicates if they exist
 if (length(which(duplicated(admission.df$NeoTreeID)))>0){
@@ -53,7 +49,7 @@ table(discharge.df$NeoTreeID %in% admission.df$NeoTreeID)
 
 # Check the 'other' options to make consistent
 
-#Admission.AdmReasonOth = macrosomia or Macrosomia could you change Admission.AdmReason = Macro (rather than O for other)
+# Admission.AdmReasonOth = macrosomia or Macrosomia could you change Admission.AdmReason = Macro (rather than O for other)
 admission.df$Admission.AdmReason <- ifelse(admission.df$Admission.AdmReasonOth %in% c("macrosomia", "Macrosomia"), "Macro", admission.df$Admission.AdmReason)
 # Same for Admission.Diagnoses = Macro (rather than OTH for other) if Admission.DiagnosesOth = macrosomia or Macrosomia
 admission.df$Admission.Diagnoses <- ifelse(admission.df$Admission.Diagnoses %in% c("macrosomia", "Macrosomia"), 
@@ -96,50 +92,7 @@ discharge.df$Discharge.CauseDeath <- ifelse(discharge.df$Discharge.CauseDeath %i
                                             "Gastroschisis", discharge.df$Discharge.CauseDeath)
 table(discharge.df$Discharge.CauseDeath)
 
-# Function to make all possible mismatches from admission UIDs
-makeAllMismatches <- function(UID){
-  mismatches <- c(UID) # To store possible mismatches
-  # oe05-0006 
-  # oe05 0006 
-  # Replace dashes by spaces and vice versa
-  mismatches <- c(mismatches, gsub(" ", "-", UID)) # space to dash
-  mismatches <- c(mismatches, gsub("-", " ", UID)) # dash to space
-  mismatches <- c(mismatches, gsub("-", "", UID)) # remove dash
-  mismatches <- c(mismatches, gsub(" ", "", UID)) # remove space
-  
-  
-  # all possible lengths of repeat zeroes
-  mismatches <- c(mismatches, gsub("(0)\\1+", "0", mismatches))
-  mismatches <- c(mismatches, gsub("(0)\\1+", "00", mismatches))
-  mismatches <- c(mismatches, gsub("(0)\\1+", "000", mismatches))
-  mismatches <- c(mismatches, gsub("(0)\\1+", "0000", mismatches))
-  # Expand zeroes
-  mismatches <- c(mismatches, gsub("(0.*?)0", "\\100", mismatches))
-  mismatches <- c(mismatches, gsub("(0.*?)0", "\\1000", mismatches))
-  mismatches <- c(mismatches, gsub("(0.*?)0", "\\10000", mismatches))
-  # Insert dash before zeroes
-  mismatches <- c(mismatches, gsub("0(.*)", "-0\\1", mismatches))
-  
-  
-  # Replace second O with 0: OE050006 -> OEO50006
-  mismatches <- c(mismatches, gsub("(o.*?)o", "\\10", UID))
-  # More O/0 replacing
-  mismatches <- c(mismatches, gsub("o", "0", mismatches))
-  
-  mismatches <- c(mismatches, gsub("([1-9])0", "\\1 ", UID))# Add space between first and second part (between first non-zero number and zero)
-  mismatches <- c(mismatches, gsub("([1-9])0", "\\1-0", UID)) # Add dash between first and second part (between first non-zero number and zero)
-  
-  # EF780022 becomes EF7022
-  if (nchar(UID)>=6){
-    mismatches <- c(mismatches, paste0(substr(UID, 1, 3), substr(UID, nchar(UID)-2, nchar(UID))))
-    mismatches <- c(mismatches, gsub("o", "0", mismatches))
-  }
-  # Apply to mismatches as well
-  
-  # Only keep unique ones
-  mismatches <- unique(mismatches)
-  return(mismatches)
-}
+
 # Those discharges which have a match
 discharge.have.match <-  discharge.df$NeoTreeID[discharge.df$NeoTreeID %in% admission.df$NeoTreeID]
 have.match.df <- data.frame(admissionID=discharge.have.match,

@@ -115,3 +115,48 @@ jsonToDataFrame <- function(json.filenames, scriptType = "Admission"){
   
   return(df.analysis)
 }
+
+# Function to make all possible mismatches from admission UIDs
+makeAllMismatches <- function(UID){
+  mismatches <- c(UID) # To store possible mismatches
+  # oe05-0006 
+  # oe05 0006 
+  # Replace dashes by spaces and vice versa
+  mismatches <- c(mismatches, gsub(" ", "-", UID)) # space to dash
+  mismatches <- c(mismatches, gsub("-", " ", UID)) # dash to space
+  mismatches <- c(mismatches, gsub("-", "", UID)) # remove dash
+  mismatches <- c(mismatches, gsub(" ", "", UID)) # remove space
+  
+  
+  # all possible lengths of repeat zeroes
+  mismatches <- c(mismatches, gsub("(0)\\1+", "0", mismatches))
+  mismatches <- c(mismatches, gsub("(0)\\1+", "00", mismatches))
+  mismatches <- c(mismatches, gsub("(0)\\1+", "000", mismatches))
+  mismatches <- c(mismatches, gsub("(0)\\1+", "0000", mismatches))
+  # Expand zeroes
+  mismatches <- c(mismatches, gsub("(0.*?)0", "\\100", mismatches))
+  mismatches <- c(mismatches, gsub("(0.*?)0", "\\1000", mismatches))
+  mismatches <- c(mismatches, gsub("(0.*?)0", "\\10000", mismatches))
+  # Insert dash before zeroes
+  mismatches <- c(mismatches, gsub("0(.*)", "-0\\1", mismatches))
+  
+  
+  # Replace second O with 0: OE050006 -> OEO50006
+  mismatches <- c(mismatches, gsub("(o.*?)o", "\\10", UID))
+  # More O/0 replacing
+  mismatches <- c(mismatches, gsub("o", "0", mismatches))
+  
+  mismatches <- c(mismatches, gsub("([1-9])0", "\\1 ", UID))# Add space between first and second part (between first non-zero number and zero)
+  mismatches <- c(mismatches, gsub("([1-9])0", "\\1-0", UID)) # Add dash between first and second part (between first non-zero number and zero)
+  
+  # EF780022 becomes EF7022
+  if (nchar(UID)>=6){
+    mismatches <- c(mismatches, paste0(substr(UID, 1, 3), substr(UID, nchar(UID)-2, nchar(UID))))
+    mismatches <- c(mismatches, gsub("o", "0", mismatches))
+  }
+  # Apply to mismatches as well
+  
+  # Only keep unique ones
+  mismatches <- unique(mismatches)
+  return(mismatches)
+}
