@@ -30,8 +30,9 @@ admission.files <- list.files(path = path,
                               pattern = '*NeoTree___Zimbabwe*.json')
 admission.files <- admission.files[!admission.files %in% old.json.files]
 if (length(admission.files)==0){
-  print("There are apparently no new admission files to analyse.")
-  print("The script will run with errors, but don't worry about them.")
+  print("There are apparently no new admission files to analyse. The script 
+        will stop now.")
+  stop()
 }
 admission.filenames <- paste0(path, 
                               '/', 
@@ -39,11 +40,6 @@ admission.filenames <- paste0(path,
 discharge.files <- list.files(path = path, 
                               pattern = '*NeoDischarge___Zimbabwe*.json')
 discharge.files <- discharge.files[!discharge.files %in% old.json.files]
-if (length(discharge.files)==0){
-  print("There are apparently no new discharge files to analyse.")
-  print("The script will run with errors, but don't worry about them.")
-}
-
 discharge.filenames <- paste0(path, 
                                '/',
                                discharge.files)
@@ -86,7 +82,7 @@ if (!is.null(new.merged.df)){ # If there are new matches to add
   final.database.df <- rbind(final.database.df, 
                              old.final.database)
 } # There may be no matches in the new data
-if (is.null(complete.df)){
+if (is.null(new.merged.df)){
   final.database.df <- addUnmatchedDischarges(old.final.database, 
                              discharge.df)
 }
