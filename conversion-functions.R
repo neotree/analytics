@@ -189,7 +189,7 @@ deduplicateDischarge <- function(discharge.data.frame){
     
   }
 
-  discharge.data.frame$Discharge.NeoTreeID <- NULL
+  #discharge.data.frame$Discharge.NeoTreeID <- NULL
   return(discharge.data.frame)
 }
 
@@ -368,4 +368,13 @@ addUnmatchedDischarges <- function(merged.df, discharge.df){
 randomString <- function(n = 1) {
   a <- do.call(paste0, replicate(5, sample(LETTERS, n, TRUE), FALSE))
   paste0(a, sprintf("%04d", sample(9999, n, TRUE)), sample(LETTERS, n, TRUE))
+}
+
+uniqueFileName <- function(some.string){
+  if (file.exists(some.string)){
+    database.file <-  paste0(randomString(), 
+                             '-',
+                             some.string)
+  }
+  return(database.file)
 }

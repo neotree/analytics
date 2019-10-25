@@ -8,10 +8,10 @@ path <- '../json/'
 old.json.files <- read.csv('json-files-2019-10-25.txt',  
                            stringsAsFactors = F,
                            header = F)$V1
-old.unmatched.admission.df <- read.csv('2019-10-25-NeoTree-admission-ID-unmatched.csv',
+old.unmatched.admission.df <- read.csv('2019-10-25-NeoTree-unmatched-admissions.csv',
                                        header = T,
                                        stringsAsFactors = F)
-old.final.database <- read.csv('test-final-DB.csv',
+old.final.database <- read.csv('2019-10-25OUUNI8943H-NeoTree-database.csv',
                                header = T,
                                stringsAsFactors = F)
 
@@ -48,35 +48,40 @@ discharge.df <- jsonToDataFrame(discharge.filenames, scriptType = "Discharge")
 admission.df <- deduplicateAdmission(admission.df)
 discharge.df <- deduplicateDischarge(discharge.df)
 
-# Check for admission matches with the 
-# discharges in the previous version
-# of the database
-#admission.df$NeoTreeID %in% old.final.database$Discharge.NeoTreeID)
+# Comparing with previous database
+# 1. Remove any unmatched discharges from previous database
+#    that are also present in the new discharge data.
+previous.database <- old.final.database[which(!old.final.database$Discharge.NeoTreeID %in% 
+                                                discharge.df$Discharge.NeoTreeID),]
+# (We don't check for admission matches with previous database discharges because
+#  I'm assuming the temporality means we don't have to. Ideally we would
+#  for completeness but I haven't implemented this.)
+# 2. Check for matches in the new data
+# Find matches
+new.merged.df <- findMatchesWithinNewAdmissionDischarge(admission.df, 
+                                                      discharge.df)
+unmatched.discharge.df <- discharge.df[which(!discharge.df$NeoTreeID %in% 
+                                               new.merged.df$Discharge.NeoTreeID),]
+# Remove those already in the previous version of the database
+new.merged.df <- new.merged.df[which(!new.merged.df$Admission.NeoTreeID %in% 
+                                       old.final.database$Admission.NeoTreeID),]
 
-# Find matches 
-merged.df <- findMatchesWithinNewAdmissionDischarge(admission.df, discharge.df)
 
-if (!is.null(merged.df)){ # There may be no matches in the new data
+if (!is.null(new.merged.df)){ # If there are new matches to add
   # Add in unmatched discharges
-  final.database.df <- addUnmatchedDischarges(merged.df, discharge.df)
-}
-if (is.null(merged.df)){
+  final.database.df <- addUnmatchedDischarges(new.merged.df, 
+                                              unmatched.discharge.df)
+  # Add in old final database
+  final.database.df <- rbind(final.database.df, 
+                             old.final.database)
+} # There may be no matches in the new data
+if (is.null(complete.df)){
   final.database.df <- addUnmatchedDischarges(old.final.database, 
                              discharge.df)
 }
 
-final.database.df.v2 <- merge(final.database.df, 
-                           old.final.database)
 # Write this final database to csv
-database.file <- paste0(Sys.Date(),'-NeoTree-database.csv')
-# Check if file exists
-# If file exists, add a random string to avoid overwriting
-if (file.exists(database.file)){
-  database.file <-  paste0(Sys.Date(), 
-                           randomString(), 
-                           '-NeoTree-database.csv')
-}
-write.csv(file=database.file, 
+write.csv(file=uniqueFileName(paste0(Sys.Date(),'-NeoTree-database.csv')), 
           final.database.df, 
           row.names = F,
           quote=T)
@@ -84,7 +89,8 @@ write.csv(file=database.file,
 # Save the unmatched admissions as well   
 unmatched.admission.df <- admission.df[which(!admission.df$Admission.UID %in% 
 final.database.df$Admission.UID),]
-write.csv(file=paste0(Sys.Date(),'-NeoTree-unmatched-admissions.csv'), 
+# Write this final database to csv
+write.csv(file=uniqueFileName(paste0(Sys.Date(),'-NeoTree-database.csv')), 
           unmatched.admission.df, 
           row.names = F,
           quote=T)
@@ -94,7 +100,7 @@ write.csv(file=paste0(Sys.Date(),'-NeoTree-unmatched-admissions.csv'),
 # to this filename
 cat(c(admission.files, discharge.files), 
     sep =  '\n',
-    file = paste0('json-files-', Sys.Date(), '.txt')) 
+    file = uniqueFileName(paste0('json-files-', Sys.Date(), '.txt'))) 
 
 # Summary statistics by HCWID
 source('summary-statistics.R')
