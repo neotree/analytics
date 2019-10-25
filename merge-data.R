@@ -40,6 +40,9 @@ discharge.filenames <- paste0(path,
                                '/',
                                discharge.files)
 
+# Random string to precede filenames (for uniqueness)
+run.string <- randomString()
+
 # Read in files and convert from json
 admission.df <- jsonToDataFrame(admission.filenames, scriptType = "Admission")
 discharge.df <- jsonToDataFrame(discharge.filenames, scriptType = "Discharge")
@@ -81,16 +84,20 @@ if (is.null(complete.df)){
 }
 
 # Write this final database to csv
-write.csv(file=uniqueFileName(paste0(Sys.Date(),'-NeoTree-database.csv')), 
+write.csv(file=paste0(runstring, '-', Sys.Date(),'-NeoTree-database.csv'), 
           final.database.df, 
           row.names = F,
           quote=T)
 
-# Save the unmatched admissions as well   
+# Save the unmatched admissions as well 
 unmatched.admission.df <- admission.df[which(!admission.df$Admission.UID %in% 
 final.database.df$Admission.UID),]
+# Check if these unmatched admissions were already seen
+unmatched.admission.df <- unmatched.admission.df[which(!unmatched.admission.df$NeoTreeID %in%
+                                                         old.unmatched.admission.df$NeoTreeID),]
+total.unmatched.admissions <- rbind(unmatched.admission.df, old.unmatched.admission.df)
 # Write this final database to csv
-write.csv(file=uniqueFileName(paste0(Sys.Date(),'-NeoTree-database.csv')), 
+write.csv(file=paste0(run.string, '-', Sys.Date(),'-NeoTree-unmatched-admissions.csv'), 
           unmatched.admission.df, 
           row.names = F,
           quote=T)
@@ -98,9 +105,9 @@ write.csv(file=uniqueFileName(paste0(Sys.Date(),'-NeoTree-database.csv')),
 # Save the files that have been processed in this run.
 # Next time the script is run, change the old.json.files 
 # to this filename
-cat(c(admission.files, discharge.files), 
+cat(c(admission.files, discharge.files, old.json.files), 
     sep =  '\n',
-    file = uniqueFileName(paste0('json-files-', Sys.Date(), '.txt'))) 
+    file = paste0(run.string, '-', Sys.Date(), '-json-files.txt')) 
 
 # Summary statistics by HCWID
 source('summary-statistics.R')

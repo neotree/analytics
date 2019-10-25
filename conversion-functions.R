@@ -372,9 +372,9 @@ randomString <- function(n = 1) {
 
 uniqueFileName <- function(some.string){
   if (file.exists(some.string)){
-    database.file <-  paste0(randomString(), 
+    some.string <-  paste0(randomString(), 
                              '-',
                              some.string)
   }
-  return(database.file)
+  return(some.string)
 }
