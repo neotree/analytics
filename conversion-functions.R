@@ -169,7 +169,7 @@ deduplicateAdmission <- function(admission.data.frame){
   admission.data.frame <- admission.data.frame[!duplicated(admission.data.frame[,seq(2, ncol(admission.data.frame))]),]
   # Convert ID to lower case
   admission.data.frame$Admission.UID <- tolower(admission.data.frame$Admission.UID)
-  # First 3 and last 3 characters of admission.df$UID should match discharge.df$NeoTreeID
+  # First 3 and last 3 characters of admission.df$UID should match discharge.df$NeoTreeID ?
   admission.data.frame$NeoTreeID <- sapply(admission.data.frame$Admission.UID, function(x) paste0(substr(x, start=1, stop=3),
                                                                                   substr(x, start=(nchar(x)-2), stop=(nchar(x)))))
   
@@ -260,8 +260,9 @@ correctDischargeData <- function(discharge.df){
 
 findMatchesWithinNewAdmissionDischarge <- function(admission.df, discharge.df){
   # Those discharges which have a match
-  discharge.have.match <-  discharge.df$NeoTreeID[discharge.df$NeoTreeID %in% admission.df$NeoTreeID]
-  if (length(discharge.have.match)==0){
+  # N.B. UID / NeoTreeID is confusing me, but I think this is the right way to do it
+  discharge.have.match <-  discharge.df$NeoTreeID[discharge.df$NeoTreeID %in% admission.df$NeoTreeID | discharge.df$NeoTreeID %in% admission.df$Admission.UID]
+  if (length(discharge.have.match)==0){ # this is perfect match only
     return()
   }
   else{
@@ -269,8 +270,8 @@ findMatchesWithinNewAdmissionDischarge <- function(admission.df, discharge.df){
                                   dischargeID=discharge.have.match,
                                   matchType="perfect")
       # Those discharges which don't have a match
-      discharge.need.match <- discharge.df$NeoTreeID[!discharge.df$NeoTreeID %in% admission.df$NeoTreeID]
-      admission.need.match <- admission.df$NeoTreeID[!admission.df$NeoTreeID %in% discharge.df$NeoTreeID]
+      discharge.need.match <- discharge.df$NeoTreeID[!discharge.df$NeoTreeID %in% discharge.have.match]
+      admission.need.match <- admission.df$NeoTreeID[!(admission.df$NeoTreeID %in% discharge.have.match | admission.df$Admission.UID %in% discharge.have.match)]
       
       # Find possible matches using mismatch function
       discharge.possible.matches <- unlist(as.vector(sapply(discharge.need.match, function(x) 
@@ -319,6 +320,8 @@ findMatchesWithinNewAdmissionDischarge <- function(admission.df, discharge.df){
       admission.df.matched <- admission.df[which(admission.df$NeoTreeID %in% matches.df$admissionID),]
       admission.df.matched.2 <- admission.df[which(admission.df$Admission.UID %in% matches.df$admissionID),]
       admission.df.matched <- rbind(admission.df.matched, admission.df.matched.2)
+      # drop duplicates
+      admission.df.matched <- admission.df.matched[!duplicated(admission.df.matched$NeoTreeID),]
       rownames(admission.df.matched) <- admission.df.matched$NeoTreeID
       admission.df.matched$Admission.NeoTreeID <- admission.df.matched$Admission.UID # use UID
       admission.df.matched$NeoTreeID <- NULL
