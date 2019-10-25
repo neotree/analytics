@@ -5,7 +5,7 @@
 setwd('./')
 path <- '../json/'
 # List of previously read JSON files to avoid reading in
-old.json.files <- read.csv('json-files-',  
+old.json.files <- read.csv('json-files-2019-10-25.txt',  
                            stringsAsFactors = F,
                            header = F)$V1
 old.unmatched.admission.df <- read.csv('2019-10-25-NeoTree-admission-ID-unmatched.csv',
@@ -28,11 +28,14 @@ source('conversion-functions.R') # defined bespoke functions
 # File locations
 admission.files <- list.files(path = path, 
                               pattern = '*NeoTree___Zimbabwe*.json')
+admission.files <- admission.files[!admission.files %in% old.json.files]
 admission.filenames <- paste0(path, 
                               '/', 
                               admission.files)
 discharge.files <- list.files(path = path, 
                               pattern = '*NeoDischarge___Zimbabwe*.json')
+discharge.files <- discharge.files[!discharge.files %in% old.json.files]
+
 discharge.filenames <- paste0(path, 
                                '/',
                                discharge.files)
@@ -48,8 +51,13 @@ discharge.df <- deduplicateDischarge(discharge.df)
 # Find matches 
 merged.df <- findMatchesWithinNewAdmissionDischarge(admission.df, discharge.df)
 
-# Add in unmatched discharges
-final.database.df <- addUnmatchedDischarges(merged.df, discharge.df)
+if (!is.null(merged.df)){ # There may be no matches in the new data
+  # Add in unmatched discharges
+  final.database.df <- addUnmatchedDischarges(merged.df, discharge.df)
+}
+if (is.null(merged.df)){
+  final.database.df <- discharge.df
+}
 
 # Write this final database to csv
 database.file <- paste0(Sys.Date(),'-NeoTree-database.csv')
