@@ -2,8 +2,12 @@
 ###### IMPORTANT ##### 
 # Set this depending on which computer you are 
 # running the script on (sets working directory)
-setwd("S:/ICH_PPP_CHAMPP_NeoTree/Zimbabwe-merged-data/NeoTreeZimJson")
-path <- '.'
+setwd('./')
+path <- '../json/'
+# List of previously read JSON files to avoid reading in
+old.json.files <- read.csv('json-files-',  
+                           stringsAsFactors = F,
+                           header = F)$V1
 
 # Library loading
 library(tidyr)
@@ -16,9 +20,14 @@ library(plyr)
 source('conversion-functions.R') # defined bespoke functions 
 
 # File locations
-admission.filenames <- paste0(path, '/', list.files(path = path, pattern ="*NeoTree___Zimbabwe*.json"))
-discharge.filenames <-  paste0(path, '/',list.files(path = path, pattern ="*NeoDischarge___Zimbabwe*.json"))
-lab.filenames <-  paste0(path, '/', list.files(path = path, pattern = "*NeoLab*"))
+admission.filenames <- paste0(path, 
+                              '/', 
+                              list.files(path = path, 
+                                         pattern = '*NeoTree___Zimbabwe*.json'))
+discharge.filenames <- paste0(path, 
+                               '/',
+                               list.files(path = path, 
+                                          pattern = '*NeoDischarge___Zimbabwe*.json'))
 
 # Read in files and convert from json
 admission.df <- jsonToDataFrame(admission.filenames, scriptType = "Admission")
@@ -27,52 +36,6 @@ discharge.df <- jsonToDataFrame(discharge.filenames, scriptType = "Discharge")
 # Deduplicate
 admission.df <- deduplicateAdmission(admission.df)
 discharge.df <- deduplicateDischarge(discharge.df)
-
-# Check the 'other' options to make consistent
-
-# Admission.AdmReasonOth = macrosomia or Macrosomia could you change Admission.AdmReason = Macro (rather than O for other)
-admission.df$Admission.AdmReason <- ifelse(admission.df$Admission.AdmReasonOth %in% c("macrosomia", "Macrosomia"), "Macro", admission.df$Admission.AdmReason)
-# Same for Admission.Diagnoses = Macro (rather than OTH for other) if Admission.DiagnosesOth = macrosomia or Macrosomia
-admission.df$Admission.Diagnoses <- ifelse(admission.df$Admission.Diagnoses %in% c("macrosomia", "Macrosomia"), 
-                                           "Macro", admission.df$Admission.AdmReason)
-
-# Similarly if Admission.AdmReasonOth = safekeeping or safe keeping or Safe keeping could you change Admission.AdmReason = Safe (rather than O for other)
-admission.df$Admission.AdmReason <- ifelse(admission.df$Admission.AdmReasonOth %in% c("safekeeping", "safe keeping", "Safe keeping"), 
-                                           "Safe", admission.df$Admission.AdmReason)
-admission.df$Admission.Diagnoses <- ifelse(admission.df$Admission.DiagnosesOth %in% c("safekeeping", "safe keeping", "Safe keeping"), 
-                                           "Safe", admission.df$Admission.Diagnoses)
-#Discharge.DIAGDIS1OTH = macrosomia or Macrosomia could you change Discharge.DIAGDIS1 = Mac(rather than O for other)
-discharge.df$Discharge.DIAGDIS1 <- ifelse(discharge.df$Discharge.DIAGDIS1OTH %in% c("macrosomia", "Macrosomia"), "Mac", discharge.df$Discharge.DIAGDIS1)
-# Same for Admission.Diagnoses = Macro (rather than OTH for other) if Admission.DiagnosesOth = macrosomia or Macrosomia
-
-# Similarly if Discharge.DIAGDIS1OTH = safekeeping or safe keeping or Safe keeping could you change Discharge.DIAGDIS1 = Safe (rather than O for other)
-discharge.df$Discharge.DIAGDIS1 <- ifelse(discharge.df$Discharge.DIAGDIS1OTH %in% c("safekeeping", "safe keeping", "Safe keeping", "Safe Keeping", "Safekeeping", "SafeKeeping","safe keeping:mother had 3rd degree tear"), 
-                                          "Safe", discharge.df$Discharge.DIAGDIS1)
-#Jaundice in Discharge.DIAGDIS1OTH
-discharge.df$Discharge.DIAGDIS1 <- ifelse(discharge.df$Discharge.DIAGDIS1OTH %in% c("Neonatal jaundice", "Neonatal Jaundice", "Jaundice", "NNJ","NNJ on day 1 of life"), 
-                                          "JAUN", discharge.df$Discharge.DIAGDIS1)
-#BBA in Discharge.DIAGDIS1OTH
-discharge.df$Discharge.DIAGDIS1 <- ifelse(discharge.df$Discharge.DIAGDIS1OTH %in% c("BBA", "born before arrival","Born before arrival","Born before Arrival","Born Before Arrival","BORN BEFORE ARRIVAL","born before arrival. ophthalmia neonatorum"), 
-                                          "BBA", discharge.df$Discharge.DIAGDIS1)
-#Congenital syphilis in Discharge.DIAGDIS1OTH
-discharge.df$Discharge.DIAGDIS1 <- ifelse(discharge.df$Discharge.DIAGDIS1OTH %in% c("syphillis", "congenital syphilis","congenital syphillis","Congenital Syphillis"), 
-                                          "SYPH", discharge.df$Discharge.DIAGDIS1)
-#syphilis exposure in Discharge.DIAGDIS1OTH
-discharge.df$Discharge.DIAGDIS1 <- ifelse(discharge.df$Discharge.DIAGDIS1OTH %in% c("Syphilis exposure", "syphillis exposure","Syphillis Exposure mum untreated","syphyllis exposure RPR positive untreated mother","RPR exposed"), 
-                                          "SYPHEx", discharge.df$Discharge.DIAGDIS1)
-table(discharge.df$Discharge.DIAGDIS1)
-#Other causes of death
-table(discharge.df$Discharge.CauseDeathOther)
-discharge.df$Discharge.CauseDeath <- ifelse(discharge.df$Discharge.CauseDeathOther %in% c("gastroschisis", "Gastroschisis", "Gastrochisis"), 
-                                            "Gastroschisis", discharge.df$Discharge.CauseDeath)
-discharge.df$Discharge.CauseDeath <- ifelse(discharge.df$Discharge.CauseDeathOther %in% c("Aspiration"), 
-                                            "ASP", discharge.df$Discharge.CauseDeath)
-discharge.df$Discharge.CauseDeath <- ifelse(discharge.df$Discharge.CauseDeathOther %in% c("RDS and Risk of Sepsis", "Respiratory distress", "Macrosomia with respiratory distress","RDS","Respiratory Distress","Respiratory distress syndrome"), 
-                                            "RDS", discharge.df$Discharge.CauseDeath)
-discharge.df$Discharge.CauseDeath <- ifelse(discharge.df$Discharge.CauseDeath %in% c("Gastro", "Gastroschisis", "Gastrochisis"), 
-                                            "Gastroschisis", discharge.df$Discharge.CauseDeath)
-table(discharge.df$Discharge.CauseDeath)
-
 
 # Those discharges which have a match
 discharge.have.match <-  discharge.df$NeoTreeID[discharge.df$NeoTreeID %in% admission.df$NeoTreeID]
@@ -185,6 +148,10 @@ discharge.need.match.df$Discharge.DateDischarge<-as.Date(as.numeric(discharge.ne
 write.csv(discharge.need.match.df, 
           file=paste0(Sys.Date(),'NeoTree-discharge-ID-unmatched.csv'),
           row.names = F)
+
+
+# Save the files that have been processed in this run.
+write.csv(c(admission.filenames, discharge.filenames), paste0('json-files-', Sys.Date(), '.txt'), 
 
 
 
