@@ -119,7 +119,7 @@ write.csv(file=paste0(output.directory, '/', run.string, '-', Sys.Date(),'-NeoTr
 # to this filename
 cat(c(admission.files, discharge.files, old.json.files), 
     sep =  '\n',
-    file = paste0(run.string, '-', Sys.Date(), '-json-files.txt')) 
+    file = paste0(output.directory, '/', run.string, '-', Sys.Date(), '-json-files.txt')) 
 
 # Summary statistics by HCWID
 # Not sure if this produces the intended output files or not. 
