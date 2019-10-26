@@ -8,6 +8,9 @@ path <- '../json/'
 old.json.files <- read.csv('json-files-2019-10-25.txt',  
                            stringsAsFactors = F,
                            header = F)$V1
+# Old admission and discharge files (rds)
+# These should be changed to the output from the last time the 
+# script was run.
 old.admission.df <- readRDS('YORFN6180G-2019-10-26-admissions.rds')
 old.discharge.df <- readRDS('YORFN6180G-2019-10-26-discharges.rds')
 
@@ -15,7 +18,7 @@ old.discharge.df <- readRDS('YORFN6180G-2019-10-26-discharges.rds')
 library(tidyr)
 library(hms)
 library(data.table)
-#library(Stack)
+#library(Stack) # Not sure what this was for?
 library(ggplot2)
 library(rjson)
 library(plyr)
@@ -107,7 +110,10 @@ cat(c(admission.files, discharge.files, old.json.files),
     file = paste0(run.string, '-', Sys.Date(), '-json-files.txt')) 
 
 # Summary statistics by HCWID
+# Not sure if this produces the intended output files or not. 
 source('summary-statistics.R')
 
 # Felicity's plotting 
+# Currently this throws an error. 
+# Not sure if this produces the intended output files or not. 
 source('plot-generation.R')
