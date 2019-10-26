@@ -41,7 +41,11 @@ discharge.files <- discharge.files[!discharge.files %in% old.json.files]
 discharge.filenames <- paste0(path, '/', discharge.files)
 
 # Random string to precede filenames (for uniqueness)
+# Create a directory using this random string for output files
 run.string <- randomString()
+output.directory <- paste0(Sys.Date(), '-', run.string)
+dir.create(file.path(output.directory), 
+           showWarnings = FALSE)
 
 # Read in files and convert from json
 admission.df <- jsonToDataFrame(admission.filenames, 
@@ -64,14 +68,18 @@ new.admission.df <- rbind(old.admission.df, admission.df)
 new.discharge.df <- rbind(old.discharge.df, discharge.df)
 
 # Save these versions
-saveRDS(new.admission.df, file = paste0(run.string, 
-                                    '-', 
-                                    Sys.Date(), 
-                                    '-admissions.rds'))
-saveRDS(new.discharge.df, file = paste0(run.string, 
-                                    '-', 
-                                    Sys.Date(), 
-                                    '-discharges.rds'))
+saveRDS(new.admission.df, file = paste0(output.directory,
+                                        '/', 
+                                        run.string,
+                                        '-', 
+                                        Sys.Date(),
+                                        '-admissions.rds'))
+saveRDS(new.discharge.df, file = paste0(output.directory,
+                                        '/',
+                                        run.string,
+                                        '-', 
+                                        Sys.Date(),
+                                        '-discharges.rds'))
 
 # Check for matched admission/discharge pairs 
 new.merged.df <- findMatchesWithinNewAdmissionDischarge(new.admission.df, 
@@ -85,17 +93,17 @@ combined.df <- merge(new.merged.df,
                      all = TRUE)
 
 # Save and write to csv
-write.csv(file=paste0(run.string, '-', Sys.Date(),'-NeoTree-database.csv'), 
+write.csv(file=paste0(output.directory, '/', run.string, '-', Sys.Date(),'-NeoTree-database.csv'), 
           combined.df, 
           row.names = F,
           quote=T)
-saveRDS(combined.df, file=paste0(run.string, '-', Sys.Date(), '-NeoTree-database.rds'))
+saveRDS(combined.df, file=paste0(output.directory, '/', run.string, '-', Sys.Date(), '-NeoTree-database.rds'))
 
 # Unmatched admissions
 unmatched.admission.df <- new.admission.df[which(!new.admission.df$Admission.UID %in%
                                                    new.merged.df$Admission.UID),]
 # Write this final database to csv
-write.csv(file=paste0(run.string, '-', Sys.Date(),'-NeoTree-unmatched-admissions.csv'), 
+write.csv(file=paste0(output.directory, '/', run.string, '-', Sys.Date(),'-NeoTree-unmatched-admissions.csv'), 
           unmatched.admission.df, 
           row.names = F,
           quote=T)
