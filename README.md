@@ -1,6 +1,8 @@
 # analytics
 
-Scripts to process NeoTree data.
+Scripts to process NeoTree data. 
+
+Author: Liam Shaw
 
 ## merge-data.R
 
