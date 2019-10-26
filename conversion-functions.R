@@ -345,6 +345,10 @@ findMatchesWithinNewAdmissionDischarge <- function(admission.df, discharge.df){
       #add date thing
       merged.df$Admission.DateAdmission <- as.Date(as.numeric(merged.df$Admission.DateAdmission), origin="1970-01-01")
       merged.df$Discharge.DateDischarge <- as.Date(as.numeric(merged.df$Discharge.DateDischarge), origin="1970-01-01")
+      # Convert Discharge ID to lowercase
+      merged.df$Discharge.NeoTreeID <- tolower(merged.df$Discharge.NeoTreeID)
+      # Remove duplicates
+      merged.df <- merged.df[!duplicated(merged.df$Discharge.NeoTreeID),]
       return(merged.df)
     }
 }
