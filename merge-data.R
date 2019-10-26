@@ -1,3 +1,7 @@
+# NeoTree processing scripts.
+# This processes json files from tablets to find matched admissions/discharges.
+# Author: Liam Shaw, liam.philip.shaw@gmail.com
+
 ######################
 ###### IMPORTANT ##### 
 # Set this depending on which computer you are 
