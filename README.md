@@ -1,6 +1,6 @@
-# analytics
+# Neotree analytics scripts
 
-Scripts to process NeoTree data. 
+Scripts to process data from [NeoTree](http://www.neotree.org/), an Android app designed for managing neonatal patients in low-resource settings.
 
 Author: Liam Shaw
 
