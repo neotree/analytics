@@ -342,6 +342,12 @@ findMatchesWithinNewAdmissionDischarge <- function(admission.df, discharge.df){
       discharge.df.matched$Discharge.NeoTreeID <- discharge.df.matched$NeoTreeID
       discharge.df.matched$NeoTreeID <- NULL
       
+      # Only merge where both are matched 
+      # (N.B. seems to discard a small minority (~25 on 31/01/20), but let's play it safe)
+      matches.to.include <- matches.df$admissionID %in% rownames(admission.df.matched) & 
+        matches.df$dischargeID %in% rownames(discharge.df.matched)
+      matches.df <- matches.df[matches.to.include,]
+      # Now merge the datasets
       merged.df <- cbind(admission.df.matched[matches.df$admissionID,],
                          discharge.df.matched[matches.df$dischargeID,])
       merged.df$matchType <- ifelse(merged.df$Admission.NeoTreeID %in% matches.df$admissionID[which(matches.df$matchType=="perfect")],
