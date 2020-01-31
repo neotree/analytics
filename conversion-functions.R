@@ -322,7 +322,15 @@ findMatchesWithinNewAdmissionDischarge <- function(admission.df, discharge.df){
       admission.df.matched <- rbind(admission.df.matched, admission.df.matched.2)
       # drop duplicates
       admission.df.matched <- admission.df.matched[!duplicated(admission.df.matched$NeoTreeID),]
-      rownames(admission.df.matched) <- admission.df.matched$NeoTreeID
+      
+      # Here we check how to do the rownames
+      # Can either be AdmissionUID or NeoTreeID, so have to cover both eventualities
+      row.index.bool <- admission.df.matched$NeoTreeID %in% matches.df$admissionID
+      rownames(admission.df.matched) <- sapply(seq(1, length(row.index.bool)),
+                                               function(x) ifelse(row.index.bool[x], 
+                                                                  admission.df.matched$NeoTreeID[x],
+                                                                  admission.df.matched$AdmissionUID[x]))
+
       admission.df.matched$Admission.NeoTreeID <- admission.df.matched$Admission.UID # use UID
       admission.df.matched$NeoTreeID <- NULL
       
