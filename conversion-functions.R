@@ -329,7 +329,7 @@ findMatchesWithinNewAdmissionDischarge <- function(admission.df, discharge.df){
       rownames(admission.df.matched) <- sapply(seq(1, length(row.index.bool)),
                                                function(x) ifelse(row.index.bool[x], 
                                                                   admission.df.matched$NeoTreeID[x],
-                                                                  admission.df.matched$AdmissionUID[x]))
+                                                                  admission.df.matched$Admission.UID[x]))
 
       admission.df.matched$Admission.NeoTreeID <- admission.df.matched$Admission.UID # use UID
       admission.df.matched$NeoTreeID <- NULL
