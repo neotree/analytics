@@ -1,0 +1,133 @@
+---
+title: "Monthly Update"
+author:
+date:
+output:
+  powerpoint_presentation:
+  #  reference_doc: report_template.pptx
+---
+
+```{r setup, include=FALSE}
+# Libraries
+library(knitr)
+library(flextable)
+library(tidyverse)
+library(lubridate)
+
+# Knitr options
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE,
+                      dpi = 300)
+```
+
+## Refresher
+
+- What is the NeoTree?
+    - An electronic medical record/decision support tool
+    - Gradual introduction from 12th November 2018
+- Currently used in the NNU for admissions and discharges
+    - Hard copies printable in both NNU and labour ward
+- Used for feeding back blood culture results directly to the NNU
+
+## Progress to end `r format(ymd(analysis_month, truncated = 1), "%B %Y")`
+
+```{r,}
+df1 %>%
+  flextable %>%
+  set_header_labels(EventType = "Event", Number = "Count") %>%
+  colformat_num(j = "Number", digits = 0) %>%
+  theme_booktabs(fontsize = 20) %>%
+  autofit
+```
+
+## `r format(ymd(analysis_month, truncated = 1), "%B %Y")` statistics
+
+```{r}
+df2 %>%
+  flextable %>%
+  set_header_labels(EventType = "Event", Number = "Count") %>%
+  colformat_num(j = "Number", i = 1:4, digits = 0) %>%
+  colformat_num(j = "Number", i = 5, digits = 2) %>%
+  theme_booktabs(fontsize = 20) %>%
+  autofit
+```
+
+##
+
+```{r}
+#Admission each month
+plot1
+```
+
+##
+
+```{r}
+#Discharges and deaths each month
+plot2
+```
+
+##
+
+```{r}
+plot3
+```
+
+##
+
+```{r}
+plot4
+```
+
+##
+
+```{r}
+plot5
+```
+
+##
+
+```{r}
+plot6
+```
+
+##
+
+```{r}
+plot7
+```
+
+##
+
+```{r}
+plot8
+```
+
+##
+
+```{r}
+plot9
+```
+
+##
+
+```{r}
+plot10
+```
+
+##
+
+```{r}
+plot11
+```
+
+##
+
+```{r}
+plot12
+```
+
+## Questions or suggestions?
+
+
+
+
+
