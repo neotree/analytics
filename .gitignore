@@ -3,3 +3,5 @@
 *.pdf
 *.rds
 *.Rhistory
+.Rproj.user
+analytics.Rproj
