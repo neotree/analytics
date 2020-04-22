@@ -2,7 +2,7 @@
 
 Scripts to process data from [NeoTree](http://www.neotree.org/), an Android app designed for managing neonatal patients in low-resource settings.
 
-Author: Liam Shaw
+Authors: Liam Shaw & Sam Neal
 
 ## merge-data.R
 
