@@ -1,0 +1,114 @@
+---
+title: Monthly Report for Sister in Charge
+author: Prepared by the NeoTree Team
+date:
+output: html_document
+header-includes:
+- \usepackage{booktabs}
+- \usepackage{longtable}
+- \usepackage{array}
+- \usepackage{multirow}
+- \usepackage{wrapfig}
+- \usepackage{float}
+- \usepackage{colortbl}
+- \usepackage{pdflscape}
+- \usepackage{tabu}
+- \usepackage{threeparttable}
+- \usepackage{threeparttablex}
+- \usepackage[normalem]{ulem}
+- \usepackage{makecell}
+- \usepackage{xcolor}
+---
+
+```{r setup, include=FALSE}
+# Libraries
+library(knitr)
+library(kableExtra)
+library(tidyverse)
+library(lubridate)
+
+# Knitr options
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+<div style="margin-top: 20px; margin-bottom:50px; font-size:16pt">
+
+This report is for the month of `r format(ymd(analysis_month, truncated = 1), "%B %Y")`.
+
+</div>
+
+<div style="margin-bottom:50px;">
+
+# Summary counts for this month
+
+```{r}
+df3 %>%
+  knitr::kable(col.names = c("Event", "Count")) %>%
+  kable_styling(latex_options = "striped", position = "left") %>%
+  row_spec(0, bold = T)
+```
+
+</div>
+
+<div style="margin-bottom:50px;">
+
+# Causes of death this month
+
+```{r}
+df5 %>%
+  knitr::kable(col.names = c("Cause of Death", "Number")) %>%
+  kable_styling(bootstrap_options = "striped", position = "left") %>%
+  row_spec(0, bold = T)
+```
+
+*Note:* If 'Other' is a cause of death this month, the text entered by the healthcare worker will be shown below.
+
+<br>
+
+```{r}
+if (df5$Number[[9]] > 0) {
+  new.discharge.df %>%
+               select(Discharge.CauseDeathOther) %>%
+               filter(!is.na(Discharge.CauseDeathOther),
+                      Discharge.CauseDeathOther != "",
+                      grepl(analysis_month, new.discharge.df$disDiedDateTime)) %>%
+    knitr::kable(col.names = "Cause of Death if 'Other'") %>%
+    kable_styling(bootstrap_options = "striped", position = "left") %>%
+    row_spec(0, bold = T)
+} else {
+  cat("'Other' is not a cause of death this month.")
+}
+```
+
+</div>
+
+<div style="margin-bottom:50px">
+
+# Top 5 discharge diagnoses this month
+
+```{r}
+df4a %>%
+  knitr::kable(col.names = c("Discharge Diagnosis", "Number")) %>%
+  kable_styling(bootstrap_options = "striped", position = "left") %>%
+  row_spec(0, bold = T)
+```
+
+*Note:* If 'Other' appears in the top 5 diagnoses, the text entered by the healthcare worker will be shown below.
+
+<br>
+
+```{r}
+if (any(grepl("Other", df4a[[1]]))) {
+  new.discharge.df %>%
+               select(Discharge.DIAGDIS1OTH) %>%
+               filter(!is.na(Discharge.DIAGDIS1OTH),
+                      grepl(analysis_month, new.discharge.df$disDiedDateTime)) %>%
+    knitr::kable(col.names = "Discharge Diagnosis if 'Other'") %>%
+    kable_styling(bootstrap_options = "striped", position = "left") %>%
+    row_spec(0, bold = T)
+} else {
+  cat("'Other' is not in the top 5 discharge diagnoses this month.")
+}
+```
+
+</div>
