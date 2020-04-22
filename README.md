@@ -17,14 +17,29 @@ It has some things which should be edited on to run it on your system:
 
 The way the script works in brief is that it checks which json files have historically already been processed. It then only reads in and processes those that haven't been analysed before. Any new admissions and discharges that haven't been seen before are added to the old admissions and discharges files from previous run of the script. Matched pairs of admissions/discharges are then found. The final database is all matched admission/discharge pairs with unmatched discharges appended (some discharges will never have an associated admission). Each run of the script generates a random string (e.g. JMWJD3607G) which is used as a prefix for all output files to avoid overwriting. However, this may over time lead to a folder filling up with lots of files. 
 
-## conversion-functions.R
+## custom-functions.R
 
-Where most of the code for processing the json, finding matches between admission and discharges etc. is. These functions are currently (25/10/19) quite byzantine and complex and would ideally be improved. 
+Previously called 'conversion-functions.R'. Where most of the code for processing the json, finding matches between admission and discharges etc. is. These functions are currently (25/10/19) quite byzantine and complex and would ideally be improved. 
+
+## statistics.R
+
+All code to generate statistics and graphs for healthcare workers (e.g. number of admissions per week).
+* Called by merge-data.R.
+* Calls monthly_report.Rmd and sister_in_charge_report.Rmd to automatically generate these outputs.
+
+## monthly_report.Rmd
+RMarkdown script to generate Powerpoint presentation for monthly healthcare worker report. Essentially some preamble about the project for new healthcare workers then just one graph per slide (all plots generated in statistics.R).
+
+## sister_in_charge_report.Rmd
+RMarkdown script to generate HTML page with key statistics for the Sister in Charge of the neonatal unit. This report is then printed on the unit each month.
+
+## report_template.pptx
+Template Powerpoint presentation to be called my monthly_report.Rmd for better formatting. Currently not used and only contains NeoTree logo. Might be useful in the future.
 
 ## plot-generation.R
 
-Code to plot the data generated.
+Now deleted.
 
 ## summary-statistics.R
 
-Code to produce summary statistics e.g. admissions per week by healthcare worker. 
+Now deleted.
