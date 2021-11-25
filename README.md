@@ -1,6 +1,6 @@
 # Neotree analytics scripts
 
-Scripts to process data from [NeoTree](http://www.neotree.org/), an Android app designed for managing neonatal patients in low-resource settings.
+Scripts to process data from [Neotree](http://www.neotree.org/), an Android app designed for managing neonatal patients in low-resource settings.
 
 Authors: Liam Shaw & Sam Neal
 
@@ -34,7 +34,7 @@ RMarkdown script to generate Powerpoint presentation for monthly healthcare work
 RMarkdown script to generate HTML page with key statistics for the Sister in Charge of the neonatal unit. This report is then printed on the unit each month.
 
 ## report_template.pptx
-Template Powerpoint presentation to be called my monthly_report.Rmd for better formatting. Currently not used and only contains NeoTree logo. Might be useful in the future.
+Template Powerpoint presentation to be called my monthly_report.Rmd for better formatting. Currently not used and only contains Neotree logo. Might be useful in the future.
 
 ## plot-generation.R
 
